@@ -22,13 +22,17 @@ public:
     preLocalization(ros::NodeHandle &nh):
     navsat_sub(nh.subscribe("/ublox/fix", 100, &preLocalization::gps_CB, this)),
     imu_sub(nh.subscribe("/iahrs/imu/data", 100, &preLocalization::imu_CB, this)),
-    realsense_sub(nh.subscribe("/realsense_odom", 100, &preLocalization::realsense_CB, this)),
-    imu_gps_pub(nh.advertise<nav_msgs::Odometry>("/imu_gps", 10)),
-    vodom_pub(nh.advertise<nav_msgs::Odometry>("/visual_odom", 10)),
+    //realsense_sub(nh.subscribe("/realsense_odom", 100, &preLocalization::realsense_CB, this)),
+    realsense_sub(nh.subscribe("/camera/imu", 100, &preLocalization::camera_CB, this)),
+
+    imu_gps_pub(nh.advertise<nav_msgs::Odometry>("/imu_gps", 10)), // position, orientation
+    camera_imu_pub(nh.advertise<nav_msgs::Odometry>("/camera_imu", 10))
+    //vodom_pub(nh.advertise<nav_msgs::Odometry>("/visual_odom", 10)),
     loop_rate(20)
     {
         initImuGpsOdom();
-        initVisualOdom();
+        // initVisualOdom();
+        intiCameraOdom();
         //GPS2base();
     }
 
@@ -40,6 +44,7 @@ public:
             initMap2Odom();
             initVisualOdomTF();
             imu_gps_pub.publish(imu_gps_msg);
+            camera_imu_pub.publish(camera_imu_pub)
             loop_rate.sleep();
         }
     }
@@ -62,22 +67,26 @@ public:
         imu_gps_msg.twist.twist.angular.z = 0.0;
     }
 
-    //initializing vodom_msg
-    void initVisualOdom(void)
+    //initializing camera_odom_msg NEW
+    void intiCameraOdom(void)
     {
-        vodom_msg.header.frame_id = "odom";
-        vodom_msg.child_frame_id = "base_footprint";
-        vodom_msg.pose.pose.position.x = 0.0;
-        vodom_msg.pose.pose.position.y = 0.0;
-        vodom_msg.pose.pose.position.z = 0.0;
+        camera_odom_msg.header.frame_id = "odom";
+        camera_odom_msg.child_frame_id = "base_footprint";
+        camera_odom_msg.pose.pose.position.x = 0.0;
+        camera_odom_msg.pose.pose.position.y = 0.0;
+        camera_odom_msg.pose.pose.position.z = 0.0;
 
-        vodom_msg.pose.pose.orientation.x = 0.0;
-        vodom_msg.pose.pose.orientation.y = 0.0;
-        vodom_msg.pose.pose.orientation.z = 0.0;
-        vodom_msg.pose.pose.orientation.w = 1.0;
+        camera_odom_msg.pose.pose.orientation.x = 0.0;
+        camera_odom_msg.pose.pose.orientation.y = 0.0;
+        camera_odom_msg.pose.pose.orientation.z = 0.0;
+        camera_odom_msg.pose.pose.orientation.w = 1.0;
 
-        vodom_msg.twist.twist.linear.x = 0.0;
-        vodom_msg.twist.twist.angular.z = 0.0;
+        camera_odom_msg.twist.twist.linear.x = 0.0;
+        camera_odom_msg.twist.twist.linear.y = 0.0;
+        camera_odom_msg.twist.twist.linear.z = 0.0;
+        camera_odom_msg.twist.twist.angular.x = 0.0;
+        camera_odom_msg.twist.twist.angular.y = 0.0;
+        camera_odom_msg.twist.twist.angular.z = 0.0;
     }
 
     //initializing tf for odometry of "realsense" and "vodom"
@@ -170,6 +179,23 @@ public:
         imu_gps_msg.pose.pose.orientation.w = imu_msg.orientation.w;
     }
 
+    void camera_CB(const sensor_msgs::Imu &imu_msg)
+    {
+        if(!cam_imu_msg_received){
+            initial_linear_acceleration = imu_msg.linear_acceleration;
+            initial_angular_velocity = imu_msg.angular_velocity;
+            cam_imu_msg_received = true;
+        }
+        camera_odom_msg.twist.twist.linear.x = imu_msg.linear_acceleration.x
+        camera_odom_msg.twist.twist.linear.y = imu_msg.linear_acceleration.y
+        camera_odom_msg.twist.twist.linear.z = imu_msg.linear_acceleration.z
+        camera_odom_msg.twist.twist.angular.x = imu_msg.angular_velocity.x 
+        camera_odom_msg.twist.twist.angular.y = imu_msg.angular_velocity.y
+        camera_odom_msg.twist.twist.angular.z = imu_msg.angular_velocity.z
+    }
+
+    /*
+    // need to change this callback
     void realsense_CB(const nav_msgs::OdometryConstPtr &realsense_msg)
     {
         if(vodom_tf_initialized)
@@ -208,6 +234,7 @@ public:
             vodom_pub.publish(vodom_msg);
         }
     }
+    */
 
 
 private:
@@ -227,6 +254,7 @@ private:
     /*Parameter*/
     bool navSat_msg_received = false;
     bool imu_msg_received = false;
+    bool cam_imu_msg_received = false;
     bool vodom_tf_initialized = false;
     bool map_odom_tf_initialized = false;
     double gps_origin_x_ = 0;

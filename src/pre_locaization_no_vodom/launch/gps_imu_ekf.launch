@@ -1,0 +1,15 @@
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf" clear_params="true">
+    <rosparam command="load" file="$(find pre_localization_no_vodom)/params/gps_imu_ekf.yaml" />
+    <!--  Placeholder for output topic remapping
+    <remap from="odometry/filtered" to=""/>
+    <remap from="accel/filtered" to=""/>
+    -->
+  </node>
+
+  <node pkg="pre_localization_no_vodom" type="pre_localization_no_vodom" name="pre_localizpre_localization_no_vodomation"/>
+  
+  <node pkg="rviz" type="rviz" name="rviz" required="true"
+          args="-d $(find pre_localization_no_vodom)/rviz/pre_localization_no_vodom.rviz"/>
+  
+</launch>

@@ -1,0 +1,23 @@
+# Configuration Settings for ZED-F9P device
+debug: 1
+
+device: /dev/ttyACM0
+frame_id: gps
+
+config_on_startup: false
+
+uart1:
+  baudrate: 384400
+  in: 32
+  out: 3
+
+# Enable u-blox message publishers
+publish:
+  all: false
+  nav:
+    all: true
+    relposned: true
+    posllh: true
+    posecef: true
+    heading: true
+

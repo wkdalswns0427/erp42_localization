@@ -172,11 +172,12 @@ private:
     /*Subscriber */
     ros::Subscriber navsat_sub;
     ros::Subscriber imu_sub;
-    ros::Subscriber realsense_sub;
+    ros::Subscriber mavros_imu_sub;
+    ros::Subscriber mavros_pos_sub;
     
     /*Publisher */
     ros::Publisher imu_gps_pub;
-    ros::Publisher vodom_pub;
+    ros::Publisher mavros_pub;
 
     /*Transform Broadcaster */
     tf2_ros::StaticTransformBroadcaster static_broadcaster_;

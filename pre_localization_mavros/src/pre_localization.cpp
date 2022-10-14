@@ -40,8 +40,8 @@ public:
         {
             ros::spinOnce();
             initMap2Odom();
-            initVisualOdomTF();
             imu_gps_pub.publish(imu_gps_msg);
+	    mavros_pub.publish(mavros_msg);
             loop_rate.sleep();
         }
     }
